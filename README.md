@@ -62,6 +62,8 @@ ssh dev@<server-ip> -p 2222
 http://<server-ip>:6080/
 ```
 
+这套模式适合在源码目录里开发和重建镜像。执行后会在本机生成 `ai-workstation:local` 镜像，后面的极简实例目录会直接复用它。
+
 ## 代理策略
 
 容器默认会做两层代理控制：
@@ -113,23 +115,38 @@ http://<server-ip>:6080/
 
 ## 复制新实例
 
-如果你想为另一个代理或另一套配置再起一个容器，最简单的方式就是复制整个项目目录：
+如果你想为另一个代理或另一套配置再起一个容器，不需要复制整个源码仓库。先在源码目录里至少构建过一次本地镜像：
 
 ```bash
-cp -a ai-workstation ai-workstation-bob
-cd ai-workstation-bob
-cp .env.example .env
+cd /path/to/ai-workstation
 docker compose up -d --build
+```
+
+然后从仓库里的 `deploy-template/` 拿两份文件到新目录即可：
+
+```bash
+mkdir -p /path/to/ai-workstation-bob
+cp /path/to/ai-workstation/deploy-template/docker-compose.yml /path/to/ai-workstation-bob/
+cp /path/to/ai-workstation/deploy-template/.env.example /path/to/ai-workstation-bob/
+cd /path/to/ai-workstation-bob
+cp .env.example .env
+docker compose up -d
 ```
 
 需要修改的通常只有：
 
+- `IMAGE_NAME`
 - `PASSWORD`、`SSH_PASSWORD`、`VNC_PASSWORD`
 - `SOCKS5_PROXY_HOST`、`SOCKS5_PROXY_PORT`、`SOCKS5_PROXY_USERNAME`、`SOCKS5_PROXY_PASSWORD`
 - `HOME_HOST_DIR`、`WORKSPACE_HOST_DIR`、`LOGS_HOST_DIR`
 - `SSH_PORT`、`WEB_VNC_PORT`
 
-建议每个副本目录使用不同的目录名，并确保端口不冲突。这样每个项目副本都可以独立维护、独立升级、独立持久化。
+这个模式下，新目录里只需要：
+
+- `.env`
+- `docker-compose.yml`
+
+建议每个副本目录使用不同的目录名，并确保端口和宿主机数据目录不冲突。这样每个实例都可以独立维护、独立持久化，而源码仓库只负责构建和升级镜像。
 
 ## 注意事项
 
