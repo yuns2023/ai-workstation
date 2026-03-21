@@ -7,6 +7,7 @@ set -euo pipefail
 : "${VNC_PASSWORD:=${PASSWORD}}"
 : "${PUID:=1000}"
 : "${PGID:=1000}"
+: "${DISPLAY:=:1}"
 : "${SOCKS5_PROXY_HOST:=host.docker.internal}"
 : "${SOCKS5_PROXY_PORT:=1080}"
 : "${SOCKS5_PROXY_USERNAME:=}"
@@ -46,20 +47,26 @@ install -d -m 0755 -o "${USERNAME}" -g "${GROUP_NAME}" "/workspace"
 
 su - "${USERNAME}" -c "x11vnc -storepasswd '${VNC_PASSWORD}' '/home/${USERNAME}/.vnc/passwd'" >/dev/null
 
-cat >"/home/${USERNAME}/.bashrc" <<'EOF'
+DISPLAY_SHELL="$(printf '%q' "${DISPLAY}")"
+WORKSPACE_SHELL="$(printf '%q' "/workspace")"
+ALL_PROXY_SHELL="$(printf '%q' "${ALL_PROXY_URL}")"
+
+cat >"/home/${USERNAME}/.bashrc" <<EOF
 export EDITOR=vim
 export VISUAL=vim
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
-export DISPLAY=${DISPLAY:-:1}
-export WORKSPACE=/workspace
-export ALL_PROXY=${ALL_PROXY_URL}
-export HTTP_PROXY=${ALL_PROXY}
-export HTTPS_PROXY=${ALL_PROXY}
-export http_proxy=${ALL_PROXY}
-export https_proxy=${ALL_PROXY}
-export all_proxy=${ALL_PROXY}
+export DISPLAY=${DISPLAY_SHELL}
+export WORKSPACE=${WORKSPACE_SHELL}
+export ALL_PROXY=${ALL_PROXY_SHELL}
+export HTTP_PROXY=\${ALL_PROXY}
+export HTTPS_PROXY=\${ALL_PROXY}
+export http_proxy=\${ALL_PROXY}
+export https_proxy=\${ALL_PROXY}
+export all_proxy=\${ALL_PROXY}
 
+alias codex='proxy-codex'
+alias claude='proxy-claude'
 alias git='proxychains4 -q git'
 alias curl='proxychains4 -q curl'
 alias wget='proxychains4 -q wget'

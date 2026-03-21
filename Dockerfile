@@ -53,10 +53,10 @@ COPY scripts/start-vnc.sh /opt/bin/start-vnc.sh
 COPY scripts/start-novnc.sh /opt/bin/start-novnc.sh
 COPY scripts/apply-egress-lockdown.sh /opt/bin/apply-egress-lockdown.sh
 COPY scripts/proxy-shell /usr/local/bin/proxy-shell
-COPY scripts/codex-wrapper.sh /usr/local/bin/codex
-COPY scripts/claude-wrapper.sh /usr/local/bin/claude
+COPY scripts/codex-wrapper.sh /usr/local/bin/proxy-codex
+COPY scripts/claude-wrapper.sh /usr/local/bin/proxy-claude
 
-RUN chmod +x /opt/bin/*.sh /usr/local/bin/proxy-shell /usr/local/bin/codex /usr/local/bin/claude
+RUN chmod +x /opt/bin/*.sh /usr/local/bin/proxy-shell /usr/local/bin/proxy-codex /usr/local/bin/proxy-claude
 
 EXPOSE 22 5900 6080
 

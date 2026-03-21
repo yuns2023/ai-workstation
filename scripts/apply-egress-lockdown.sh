@@ -3,17 +3,27 @@ set -euo pipefail
 
 : "${SOCKS5_PROXY_HOST:=host.docker.internal}"
 : "${SOCKS5_PROXY_PORT:=1080}"
+: "${INTERNAL_DIRECT_CIDRS:=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}"
 
-PROXY_IP="$(getent ahostsv4 "${SOCKS5_PROXY_HOST}" | awk 'NR==1 {print $1}')"
-if [[ -z "${PROXY_IP}" ]]; then
-  echo "failed to resolve SOCKS5 proxy host: ${SOCKS5_PROXY_HOST}" >&2
+if [[ "${SOCKS5_PROXY_HOST}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+  PROXY_IP="${SOCKS5_PROXY_HOST}"
+else
+  echo "SOCKS5_PROXY_HOST must be an IPv4 address when local DNS is disabled: ${SOCKS5_PROXY_HOST}" >&2
   exit 1
 fi
 
 iptables -F OUTPUT
 iptables -P OUTPUT DROP
+iptables -A OUTPUT -p udp --dport 53 -j REJECT
+iptables -A OUTPUT -p tcp --dport 53 -j REJECT
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+IFS=',' read -r -a CIDR_LIST <<< "${INTERNAL_DIRECT_CIDRS}"
+for cidr in "${CIDR_LIST[@]}"; do
+  cidr="${cidr//[[:space:]]/}"
+  [[ -z "${cidr}" ]] && continue
+  iptables -A OUTPUT -d "${cidr}" -j ACCEPT
+done
+
 iptables -A OUTPUT -d "${PROXY_IP}" -p tcp --dport "${SOCKS5_PROXY_PORT}" -j ACCEPT
-iptables -A OUTPUT -d 127.0.0.11 -p udp --dport 53 -j ACCEPT
-iptables -A OUTPUT -d 127.0.0.11 -p tcp --dport 53 -j ACCEPT

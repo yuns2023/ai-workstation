@@ -2,11 +2,11 @@
 data/*
 !data/home/
 !data/workspace/
-data/home/*
+data/home/**
 !data/home/.gitkeep
-data/workspace/*
+data/workspace/**
 !data/workspace/.gitkeep
-logs/*
+logs/**
 !logs/.gitkeep
 tmp/
 *.swp

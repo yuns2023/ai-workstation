@@ -17,6 +17,8 @@ mkdir -p /var/log/ai-workstation
 : "${SOCKS5_PROXY_PORT:=1080}"
 : "${SOCKS5_PROXY_USERNAME:=}"
 : "${SOCKS5_PROXY_PASSWORD:=}"
+: "${INTERNAL_DIRECT_CIDRS:=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}"
+: "${DISABLE_LOCAL_DNS:=1}"
 : "${ENABLE_IPTABLES:=1}"
 
 export HOME="/home/${USERNAME}"
@@ -35,6 +37,14 @@ sed \
 mv /tmp/proxychains.conf /etc/proxychains4.conf
 
 /opt/bin/bootstrap-user.sh
+
+if [[ "${DISABLE_LOCAL_DNS}" == "1" ]]; then
+  cat >/etc/resolv.conf <<'EOF'
+# Local DNS disabled; use socks5h / proxychains proxy_dns for external names.
+nameserver 127.0.0.254
+options timeout:1 attempts:1 ndots:0
+EOF
+fi
 
 if [[ "${ENABLE_IPTABLES}" == "1" ]]; then
   /opt/bin/apply-egress-lockdown.sh

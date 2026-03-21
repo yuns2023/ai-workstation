@@ -33,6 +33,8 @@ SOCKS5_PROXY_HOST=your-proxy-host-or-ip
 SOCKS5_PROXY_PORT=1080
 SOCKS5_PROXY_USERNAME=your-proxy-username
 SOCKS5_PROXY_PASSWORD=your-proxy-password
+INTERNAL_DIRECT_CIDRS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+DISABLE_LOCAL_DNS=1
 ```
 
 3. 构建并启动：
@@ -59,16 +61,22 @@ http://<server-ip>:6080/
 
 - shell 环境里注入 `ALL_PROXY=socks5h://...`
 - `codex`、`claude`、`git`、`curl`、`wget` 默认通过 `proxychains4`
+- 当 `DISABLE_LOCAL_DNS=1` 时，容器本地 resolver 被显式禁用
 
 如果 `ENABLE_IPTABLES=1`，容器还会设置出站白名单：
 
+- 允许访问 `INTERNAL_DIRECT_CIDRS` 里的内网网段
 - 允许访问 `SOCKS5_PROXY_HOST:SOCKS5_PROXY_PORT`
 - 允许访问容器本地回环
 - 允许已建立连接
-- 允许 Docker 内置 DNS `127.0.0.11`
 - 拒绝其他所有出站
 
-这意味着容器外连只能经你的 SOCKS5 代理。
+这意味着：
+
+- 内网网段可直连
+- 外网访问只能经你的 SOCKS5 代理
+- 本地 DNS 不放行，因此 `SOCKS5_PROXY_HOST` 应填写固定 IP
+- 使用 `socks5h` 或 `proxychains4` 的 `proxy_dns` 做外部域名解析
 
 ## 认证与登录
 
@@ -89,7 +97,7 @@ http://<server-ip>:6080/
 
 - `docker compose` 运行时需要 `NET_ADMIN`，否则无法应用 `iptables`
 - 如果宿主机本身拉镜像也要走代理，还需要单独配置 Docker daemon 代理
-- `host.docker.internal` 在 Linux 上不一定可用，生产环境更建议直接填写代理服务器 IP
+- 在当前策略下，本地 DNS 不放行，因此 `SOCKS5_PROXY_HOST` 必须使用 IP 地址
 
 ## 后续可扩展
 
