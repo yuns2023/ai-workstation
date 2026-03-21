@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Avoid double-proxying when the shell already exports *_PROXY variables.
+unset ALL_PROXY HTTP_PROXY HTTPS_PROXY NO_PROXY
+unset all_proxy http_proxy https_proxy no_proxy
+
 exec proxychains4 -q "$@"

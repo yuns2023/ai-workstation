@@ -86,9 +86,9 @@ export all_proxy=\${ALL_PROXY}
 alias codex='proxy-codex'
 alias claude='proxy-claude'
 alias browser='proxy-browser'
-alias git='proxychains4 -q git'
-alias curl='proxychains4 -q curl'
-alias wget='proxychains4 -q wget'
+alias git='proxy-shell git'
+alias curl='proxy-shell curl'
+alias wget='proxy-shell wget'
 cd /workspace
 EOF
 
