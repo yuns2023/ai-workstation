@@ -2,10 +2,9 @@ services:
   ai-workstation:
     build:
       context: .
-    container_name: ai-workstation
     hostname: ai-workstation
     env_file:
-      - .env
+      - ${RUNTIME_ENV_FILE:-.env}
     ports:
       - "${SSH_PORT:-2222}:22"
       - "${WEB_VNC_PORT:-6080}:6080"
@@ -14,6 +13,6 @@ services:
     shm_size: "1gb"
     restart: unless-stopped
     volumes:
-      - ./data/home:/home
-      - ./data/workspace:/workspace
-      - ./logs:/var/log/ai-workstation
+      - ${HOME_HOST_DIR:-./data/home}:/home
+      - ${WORKSPACE_HOST_DIR:-./data/workspace}:/workspace
+      - ${LOGS_HOST_DIR:-./logs}:/var/log/ai-workstation

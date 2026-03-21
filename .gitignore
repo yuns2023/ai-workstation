@@ -1,4 +1,5 @@
 .env
+employee-data/
 data/*
 !data/home/
 !data/workspace/

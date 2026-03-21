@@ -27,6 +27,8 @@ cp .env.example .env
 2. 编辑 `.env`，至少修改这些值：
 
 ```env
+EMPLOYEE_ID=alice
+DATA_ROOT=./employee-data
 PASSWORD=your-login-password
 SSH_PASSWORD=your-login-password
 VNC_PASSWORD=your-vnc-password
@@ -42,7 +44,7 @@ BROWSER_HTTP_PROXY_PORT=8118
 3. 构建并启动：
 
 ```bash
-docker compose up -d --build
+./scripts/employee-compose.sh up -d --build
 ```
 
 4. 连接方式：
@@ -92,11 +94,54 @@ http://<server-ip>:6080/
 
 ## 数据持久化
 
-默认会挂载这些路径：
+如果直接用 `docker compose`，默认会挂载这些路径：
 
 - `./data/home:/home`
 - `./data/workspace:/workspace`
 - `./logs:/var/log/ai-workstation`
+
+如果用推荐的 `./scripts/employee-compose.sh`，宿主机会自动按员工生成目录：
+
+- `${DATA_ROOT}/${EMPLOYEE_ID}/home`
+- `${DATA_ROOT}/${EMPLOYEE_ID}/workspace`
+- `${DATA_ROOT}/${EMPLOYEE_ID}/logs`
+
+这意味着你外部只需要维护：
+
+- `EMPLOYEE_ID`
+- `DATA_ROOT`
+- 该员工的代理配置
+
+浏览器 profile、shell 历史、SSH known_hosts、工作目录都会自动落到对应员工的外部目录里，不需要单独再配一套路径。
+
+## 多员工
+
+推荐每个员工一份 env 文件，例如：
+
+```text
+employees/alice.env
+employees/bob.env
+```
+
+启动时：
+
+```bash
+./scripts/employee-compose.sh employees/alice.env up -d --build
+./scripts/employee-compose.sh employees/bob.env up -d --build
+```
+
+这个脚本会自动：
+
+- 用 `EMPLOYEE_ID` 生成 compose project name
+- 自动创建该员工的宿主机目录
+- 自动把外部目录映射到容器内
+
+如果多名员工要在同一台宿主机上同时运行，还需要保证每份 env 文件里的：
+
+- `SSH_PORT`
+- `WEB_VNC_PORT`
+
+彼此不冲突。这两个端口仍然建议由外部显式分配，而目录不需要手工维护。
 
 ## 注意事项
 
