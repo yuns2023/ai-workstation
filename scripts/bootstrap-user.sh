@@ -59,6 +59,9 @@ export EDITOR=vim
 export VISUAL=vim
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
+if [[ -z "\${TERM:-}" || "\${TERM}" == "dumb" ]]; then
+  export TERM=xterm-256color
+fi
 export DISPLAY=${DISPLAY_SHELL}
 export WORKSPACE=${WORKSPACE_SHELL}
 export ALL_PROXY=${ALL_PROXY_SHELL}
