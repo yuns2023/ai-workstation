@@ -31,6 +31,8 @@ SSH_PASSWORD=your-login-password
 VNC_PASSWORD=your-vnc-password
 SOCKS5_PROXY_HOST=your-proxy-host-or-ip
 SOCKS5_PROXY_PORT=1080
+SOCKS5_PROXY_USERNAME=your-proxy-username
+SOCKS5_PROXY_PASSWORD=your-proxy-password
 ```
 
 3. 构建并启动：
