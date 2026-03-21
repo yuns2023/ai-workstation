@@ -45,7 +45,9 @@ install -d -m 0700 -o "${USERNAME}" -g "${GROUP_NAME}" "/home/${USERNAME}/.vnc"
 install -d -m 0755 -o "${USERNAME}" -g "${GROUP_NAME}" "/home/${USERNAME}/Desktop"
 install -d -m 0755 -o "${USERNAME}" -g "${GROUP_NAME}" "/workspace"
 
-su - "${USERNAME}" -c "x11vnc -storepasswd '${VNC_PASSWORD}' '/home/${USERNAME}/.vnc/passwd'" >/dev/null
+VNC_PASSWORD_SHELL="$(printf '%q' "${VNC_PASSWORD}")"
+VNC_PASSWD_FILE_SHELL="$(printf '%q' "/home/${USERNAME}/.vnc/passwd")"
+su - "${USERNAME}" -c "x11vnc -storepasswd ${VNC_PASSWORD_SHELL} ${VNC_PASSWD_FILE_SHELL}" >/dev/null
 
 DISPLAY_SHELL="$(printf '%q' "${DISPLAY}")"
 WORKSPACE_SHELL="$(printf '%q' "/workspace")"

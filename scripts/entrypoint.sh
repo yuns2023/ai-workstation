@@ -29,12 +29,16 @@ if [[ -n "${SOCKS5_PROXY_USERNAME}" && -n "${SOCKS5_PROXY_PASSWORD}" ]]; then
   PROXY_AUTH_SUFFIX=" ${SOCKS5_PROXY_USERNAME} ${SOCKS5_PROXY_PASSWORD}"
 fi
 
-sed \
-  -e "s/__SOCKS5_PROXY_HOST__/${SOCKS5_PROXY_HOST//\//\\/}/g" \
-  -e "s/__SOCKS5_PROXY_PORT__/${SOCKS5_PROXY_PORT}/g" \
-  -e "s/__SOCKS5_PROXY_AUTH_SUFFIX__/${PROXY_AUTH_SUFFIX//\//\\/}/g" \
-  /etc/proxychains4.conf > /tmp/proxychains.conf
-mv /tmp/proxychains.conf /etc/proxychains4.conf
+cat >/etc/proxychains4.conf <<EOF
+strict_chain
+proxy_dns
+remote_dns_subnet 224
+tcp_read_time_out 15000
+tcp_connect_time_out 8000
+
+[ProxyList]
+EOF
+printf 'socks5 %s %s%s\n' "${SOCKS5_PROXY_HOST}" "${SOCKS5_PROXY_PORT}" "${PROXY_AUTH_SUFFIX}" >>/etc/proxychains4.conf
 
 /opt/bin/bootstrap-user.sh
 
