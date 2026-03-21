@@ -9,7 +9,7 @@
 - `Chromium` 浏览器，默认走本地 `Privoxy -> SOCKS5`
 - `proxychains4` 和 `iptables` 出站限制
 
-其中 `Claude Code` 通过 Anthropic 官方 `install.sh` 原生安装，容器里默认的 `claude` 命令会经过代理 wrapper，原始官方二进制保留为 `claude-native`。
+其中 `Claude Code` 通过 Anthropic 官方 `install.sh` 原生安装。容器里默认的 `claude` 命令会经过代理 wrapper，并通过本地 `Privoxy` 使用官方支持的 `HTTP_PROXY/HTTPS_PROXY` 出网；原始官方二进制保留为 `claude-native`。
 
 ## 目录
 
@@ -75,6 +75,7 @@ http://<server-ip>:6080/
 - shell 环境里注入 `ALL_PROXY=socks5h://...`
 - `codex`、`claude`、`git`、`curl`、`wget` 默认通过 `proxychains4`
 - `Chromium` 通过本地 `Privoxy` HTTP 代理转发到上游认证 `SOCKS5`
+- `claude` 通过本地 `Privoxy` 使用 `HTTP_PROXY/HTTPS_PROXY`，不直接使用 `SOCKS`
 - 当 `DISABLE_LOCAL_DNS=1` 时，容器本地 resolver 被显式禁用
 
 如果 `ENABLE_IPTABLES=1`，容器还会设置出站白名单：

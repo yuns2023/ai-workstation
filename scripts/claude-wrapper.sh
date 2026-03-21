@@ -33,14 +33,22 @@ if [[ -t 0 && -t 1 ]]; then
 fi
 
 BIN_PATH="${CLAUDE_NATIVE_BIN:-/usr/local/bin/claude-native}"
+: "${BROWSER_HTTP_PROXY_PORT:=8118}"
 
 if [[ ! -x "${BIN_PATH}" ]]; then
   echo "Claude native binary not found: ${BIN_PATH}" >&2
   exit 1
 fi
 
-# The native Claude binary rejects socks5h proxy env vars.
-# Let proxychains handle egress and keep the runtime env clean.
-unset ALL_PROXY HTTP_PROXY HTTPS_PROXY all_proxy http_proxy https_proxy
+# Claude Code officially supports HTTP(S) proxies, not SOCKS proxies.
+# Route it through the local Privoxy bridge, which forwards to the upstream SOCKS5 proxy.
+LOCAL_HTTP_PROXY="http://127.0.0.1:${BROWSER_HTTP_PROXY_PORT}"
+export HTTP_PROXY="${LOCAL_HTTP_PROXY}"
+export HTTPS_PROXY="${LOCAL_HTTP_PROXY}"
+export http_proxy="${LOCAL_HTTP_PROXY}"
+export https_proxy="${LOCAL_HTTP_PROXY}"
+export NO_PROXY="127.0.0.1,localhost"
+export no_proxy="${NO_PROXY}"
+unset ALL_PROXY all_proxy
 
-exec proxychains4 -q "${BIN_PATH}" "$@"
+exec "${BIN_PATH}" "$@"
