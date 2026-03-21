@@ -32,6 +32,15 @@ if [[ -t 0 && -t 1 ]]; then
   fi
 fi
 
-BIN_PATH="$(node -e "const path=require('path'); const pkg=require('/usr/local/lib/node_modules/@anthropic-ai/claude-code/package.json'); const bin=typeof pkg.bin==='string'?pkg.bin:pkg.bin.claude||Object.values(pkg.bin)[0]; process.stdout.write(path.resolve('/usr/local/lib/node_modules/@anthropic-ai/claude-code', bin));")"
+BIN_PATH="${CLAUDE_NATIVE_BIN:-/usr/local/bin/claude-native}"
 
-exec proxychains4 -q node "${BIN_PATH}" "$@"
+if [[ ! -x "${BIN_PATH}" ]]; then
+  echo "Claude native binary not found: ${BIN_PATH}" >&2
+  exit 1
+fi
+
+# The native Claude binary rejects socks5h proxy env vars.
+# Let proxychains handle egress and keep the runtime env clean.
+unset ALL_PROXY HTTP_PROXY HTTPS_PROXY all_proxy http_proxy https_proxy
+
+exec proxychains4 -q "${BIN_PATH}" "$@"

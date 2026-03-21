@@ -9,6 +9,8 @@
 - `Chromium` 浏览器，默认走本地 `Privoxy -> SOCKS5`
 - `proxychains4` 和 `iptables` 出站限制
 
+其中 `Claude Code` 通过 Anthropic 官方 `install.sh` 原生安装，容器里默认的 `claude` 命令会经过代理 wrapper，原始官方二进制保留为 `claude-native`。
+
 ## 目录
 
 - `Dockerfile`: 镜像定义

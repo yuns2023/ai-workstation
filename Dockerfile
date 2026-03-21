@@ -44,7 +44,15 @@ RUN locale-gen C.UTF-8
 RUN mkdir -p /var/run/sshd /etc/supervisor/conf.d /opt/bin /workspace \
     && chmod 0755 /workspace
 
-RUN npm install -g @openai/codex @anthropic-ai/claude-code
+RUN npm install -g @openai/codex \
+    && BUILD_HOME="$(mktemp -d)" \
+    && export HOME="${BUILD_HOME}" \
+    && export PATH="${BUILD_HOME}/.local/bin:${PATH}" \
+    && curl -fsSL https://claude.ai/install.sh | bash \
+    && install -d /usr/local/lib/claude-native \
+    && install -m 0755 "$(readlink -f "${BUILD_HOME}/.local/bin/claude")" /usr/local/lib/claude-native/claude \
+    && ln -sf /usr/local/lib/claude-native/claude /usr/local/bin/claude-native \
+    && rm -rf "${BUILD_HOME}"
 
 COPY config/sshd_config /etc/ssh/sshd_config
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
@@ -62,7 +70,8 @@ COPY scripts/codex-wrapper.sh /usr/local/bin/proxy-codex
 COPY scripts/claude-wrapper.sh /usr/local/bin/proxy-claude
 COPY scripts/proxy-browser.sh /usr/local/bin/proxy-browser
 
-RUN chmod +x /opt/bin/*.sh /usr/local/bin/proxy-shell /usr/local/bin/proxy-codex /usr/local/bin/proxy-claude /usr/local/bin/proxy-browser
+RUN chmod +x /opt/bin/*.sh /usr/local/bin/proxy-shell /usr/local/bin/proxy-codex /usr/local/bin/proxy-claude /usr/local/bin/proxy-browser \
+    && ln -sf /usr/local/bin/proxy-claude /usr/local/bin/claude
 
 EXPOSE 22 5900 6080
 
