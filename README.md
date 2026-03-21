@@ -62,6 +62,8 @@ ssh dev@<server-ip> -p 2222
 http://<server-ip>:6080/
 ```
 
+根路径会自动跳转到 noVNC 页面，不需要手工补 `/vnc.html`。
+
 这套模式适合在源码目录里开发和重建镜像。执行后会在本机生成 `ai-workstation:local` 镜像，后面的极简实例目录会直接复用它。
 
 ## 代理策略

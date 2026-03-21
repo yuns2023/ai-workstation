@@ -48,6 +48,7 @@ RUN npm install -g @openai/codex @anthropic-ai/claude-code
 COPY config/sshd_config /etc/ssh/sshd_config
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY config/proxychains.conf /etc/proxychains4.conf
+COPY config/novnc-index.html /usr/share/novnc/index.html
 COPY scripts/entrypoint.sh /opt/bin/entrypoint.sh
 COPY scripts/bootstrap-user.sh /opt/bin/bootstrap-user.sh
 COPY scripts/start-xfce.sh /opt/bin/start-xfce.sh
