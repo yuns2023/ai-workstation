@@ -11,6 +11,8 @@
 
 其中 `Claude Code` 通过 Anthropic 官方 `install.sh` 原生安装。容器里默认的 `claude` 命令会经过代理 wrapper，并通过本地 `Privoxy` 使用官方支持的 `HTTP_PROXY/HTTPS_PROXY` 出网；原始官方二进制保留为 `claude-native`。
 
+镜像还会安装仓库内置的 `Charles Proxy SSL Proxying Certificate` 到系统 CA，方便你在容器里直接调试经 Charles 解密的 HTTPS 流量。
+
 ## 目录
 
 - `Dockerfile`: 镜像定义

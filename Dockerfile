@@ -50,6 +50,10 @@ ENV LANGUAGE=en_US:en
 RUN mkdir -p /var/run/sshd /etc/supervisor/conf.d /opt/bin /workspace \
     && chmod 0755 /workspace
 
+COPY config/charles-proxy-ssl-proxying-certificate.crt /usr/local/share/ca-certificates/charles-proxy-ssl-proxying-certificate.crt
+
+RUN update-ca-certificates
+
 RUN npm install -g @openai/codex \
     && BUILD_HOME="$(mktemp -d)" \
     && export HOME="${BUILD_HOME}" \
