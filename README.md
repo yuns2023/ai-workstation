@@ -6,6 +6,7 @@
 - `Codex` 与 `Claude Code` CLI
 - `Xfce` 桌面
 - `VNC` 与 `noVNC`，支持浏览器直接访问桌面
+- `Chromium` 浏览器，默认走本地 `Privoxy -> SOCKS5`
 - `proxychains4` 和 `iptables` 出站限制
 
 ## 目录
@@ -35,6 +36,7 @@ SOCKS5_PROXY_USERNAME=your-proxy-username
 SOCKS5_PROXY_PASSWORD=your-proxy-password
 INTERNAL_DIRECT_CIDRS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 DISABLE_LOCAL_DNS=1
+BROWSER_HTTP_PROXY_PORT=8118
 ```
 
 3. 构建并启动：
@@ -61,6 +63,7 @@ http://<server-ip>:6080/
 
 - shell 环境里注入 `ALL_PROXY=socks5h://...`
 - `codex`、`claude`、`git`、`curl`、`wget` 默认通过 `proxychains4`
+- `Chromium` 通过本地 `Privoxy` HTTP 代理转发到上游认证 `SOCKS5`
 - 当 `DISABLE_LOCAL_DNS=1` 时，容器本地 resolver 被显式禁用
 
 如果 `ENABLE_IPTABLES=1`，容器还会设置出站白名单：
@@ -77,6 +80,7 @@ http://<server-ip>:6080/
 - 外网访问只能经你的 SOCKS5 代理
 - 本地 DNS 不放行，因此 `SOCKS5_PROXY_HOST` 应填写固定 IP
 - 使用 `socks5h` 或 `proxychains4` 的 `proxy_dns` 做外部域名解析
+- 浏览器通过本地 `127.0.0.1:${BROWSER_HTTP_PROXY_PORT}`，避免 Chromium 直接处理 SOCKS5 认证
 
 ## 认证与登录
 
@@ -84,6 +88,7 @@ http://<server-ip>:6080/
 - SSH 使用密码登录
 - VNC 使用 `.env` 的 `VNC_PASSWORD`
 - 容器里的工作目录是 `/workspace`
+- 桌面有 `Chromium (Proxy)` 启动器，shell 里可执行 `browser`
 
 ## 数据持久化
 

@@ -10,6 +10,7 @@ ENV SHELL=/bin/bash
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
+    chromium \
     curl \
     dbus-x11 \
     dnsutils \
@@ -20,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     novnc \
     openssh-server \
+    privoxy \
     procps \
     proxychains4 \
     python3 \
@@ -51,12 +53,14 @@ COPY scripts/bootstrap-user.sh /opt/bin/bootstrap-user.sh
 COPY scripts/start-xfce.sh /opt/bin/start-xfce.sh
 COPY scripts/start-vnc.sh /opt/bin/start-vnc.sh
 COPY scripts/start-novnc.sh /opt/bin/start-novnc.sh
+COPY scripts/start-privoxy.sh /opt/bin/start-privoxy.sh
 COPY scripts/apply-egress-lockdown.sh /opt/bin/apply-egress-lockdown.sh
 COPY scripts/proxy-shell /usr/local/bin/proxy-shell
 COPY scripts/codex-wrapper.sh /usr/local/bin/proxy-codex
 COPY scripts/claude-wrapper.sh /usr/local/bin/proxy-claude
+COPY scripts/proxy-browser.sh /usr/local/bin/proxy-browser
 
-RUN chmod +x /opt/bin/*.sh /usr/local/bin/proxy-shell /usr/local/bin/proxy-codex /usr/local/bin/proxy-claude
+RUN chmod +x /opt/bin/*.sh /usr/local/bin/proxy-shell /usr/local/bin/proxy-codex /usr/local/bin/proxy-claude /usr/local/bin/proxy-browser
 
 EXPOSE 22 5900 6080
 

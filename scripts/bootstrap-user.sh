@@ -12,6 +12,7 @@ set -euo pipefail
 : "${SOCKS5_PROXY_PORT:=1080}"
 : "${SOCKS5_PROXY_USERNAME:=}"
 : "${SOCKS5_PROXY_PASSWORD:=}"
+: "${BROWSER_HTTP_PROXY_PORT:=8118}"
 
 ALL_PROXY_URL="socks5h://${SOCKS5_PROXY_HOST}:${SOCKS5_PROXY_PORT}"
 if [[ -n "${SOCKS5_PROXY_USERNAME}" && -n "${SOCKS5_PROXY_PASSWORD}" ]]; then
@@ -69,6 +70,7 @@ export all_proxy=\${ALL_PROXY}
 
 alias codex='proxy-codex'
 alias claude='proxy-claude'
+alias browser='proxy-browser'
 alias git='proxychains4 -q git'
 alias curl='proxychains4 -q curl'
 alias wget='proxychains4 -q wget'
@@ -81,5 +83,20 @@ Web VNC URL: http://<host>:\${WEB_VNC_PORT:-6080}/
 Workspace: /workspace
 Proxy: socks5h://${SOCKS5_PROXY_HOST}:${SOCKS5_PROXY_PORT}
 EOF
+
+cat >"/home/${USERNAME}/Desktop/Chromium (Proxy).desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Chromium (Proxy)
+Comment=Chromium routed through local Privoxy to authenticated SOCKS5
+Exec=proxy-browser
+Icon=chromium
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true
+EOF
+
+chmod 0755 "/home/${USERNAME}/Desktop/Chromium (Proxy).desktop"
 
 chown -R "${USERNAME}:${GROUP_NAME}" "/home/${USERNAME}"
