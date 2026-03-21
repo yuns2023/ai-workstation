@@ -4,7 +4,7 @@ services:
       context: .
     hostname: ai-workstation
     env_file:
-      - ${RUNTIME_ENV_FILE:-.env}
+      - .env
     ports:
       - "${SSH_PORT:-2222}:22"
       - "${WEB_VNC_PORT:-6080}:6080"

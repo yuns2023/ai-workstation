@@ -27,11 +27,12 @@ cp .env.example .env
 2. 编辑 `.env`，至少修改这些值：
 
 ```env
-EMPLOYEE_ID=alice
-DATA_ROOT=./employee-data
 PASSWORD=your-login-password
 SSH_PASSWORD=your-login-password
 VNC_PASSWORD=your-vnc-password
+HOME_HOST_DIR=./data/home
+WORKSPACE_HOST_DIR=./data/workspace
+LOGS_HOST_DIR=./logs
 SOCKS5_PROXY_HOST=your-proxy-host-or-ip
 SOCKS5_PROXY_PORT=1080
 SOCKS5_PROXY_USERNAME=your-proxy-username
@@ -39,12 +40,14 @@ SOCKS5_PROXY_PASSWORD=your-proxy-password
 INTERNAL_DIRECT_CIDRS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 DISABLE_LOCAL_DNS=1
 BROWSER_HTTP_PROXY_PORT=8118
+SSH_PORT=2222
+WEB_VNC_PORT=6080
 ```
 
 3. 构建并启动：
 
 ```bash
-./scripts/employee-compose.sh up -d --build
+docker compose up -d --build
 ```
 
 4. 连接方式：
@@ -94,63 +97,42 @@ http://<server-ip>:6080/
 
 ## 数据持久化
 
-如果直接用 `docker compose`，默认会挂载这些路径：
+默认会把这些宿主机目录映射进容器：
 
 - `./data/home:/home`
 - `./data/workspace:/workspace`
 - `./logs:/var/log/ai-workstation`
 
-如果用推荐的 `./scripts/employee-compose.sh`，宿主机会自动按员工生成目录：
+如果你不想把数据放在项目目录里，直接在 `.env` 里改这三个变量即可：
 
-- `${DATA_ROOT}/${EMPLOYEE_ID}/home`
-- `${DATA_ROOT}/${EMPLOYEE_ID}/workspace`
-- `${DATA_ROOT}/${EMPLOYEE_ID}/logs`
+- `HOME_HOST_DIR`
+- `WORKSPACE_HOST_DIR`
+- `LOGS_HOST_DIR`
 
-这意味着你外部只需要维护：
+浏览器 profile、shell 历史、SSH known_hosts、桌面配置和工作目录都会保存在这些外部目录里，不会随着容器重建而丢失。
 
-- `EMPLOYEE_ID`
-- `DATA_ROOT`
-- 该员工的代理配置
+## 复制新实例
 
-浏览器 profile、shell 历史、SSH known_hosts、工作目录都会自动落到对应员工的外部目录里，不需要单独再配一套路径。
-
-## 多员工
-
-推荐每个员工一份 env 文件，例如：
-
-```text
-employees/alice.env
-employees/bob.env
-```
-
-启动时：
+如果你想为另一个代理或另一套配置再起一个容器，最简单的方式就是复制整个项目目录：
 
 ```bash
-./scripts/employee-compose.sh employees/alice.env up -d --build
-./scripts/employee-compose.sh employees/bob.env up -d --build
+cp -a ai-workstation ai-workstation-bob
+cd ai-workstation-bob
+cp .env.example .env
+docker compose up -d --build
 ```
 
-这个脚本会自动：
+需要修改的通常只有：
 
-- 用 `EMPLOYEE_ID` 生成 compose project name
-- 自动创建该员工的宿主机目录
-- 自动把外部目录映射到容器内
+- `PASSWORD`、`SSH_PASSWORD`、`VNC_PASSWORD`
+- `SOCKS5_PROXY_HOST`、`SOCKS5_PROXY_PORT`、`SOCKS5_PROXY_USERNAME`、`SOCKS5_PROXY_PASSWORD`
+- `HOME_HOST_DIR`、`WORKSPACE_HOST_DIR`、`LOGS_HOST_DIR`
+- `SSH_PORT`、`WEB_VNC_PORT`
 
-如果多名员工要在同一台宿主机上同时运行，还需要保证每份 env 文件里的：
-
-- `SSH_PORT`
-- `WEB_VNC_PORT`
-
-彼此不冲突。这两个端口仍然建议由外部显式分配，而目录不需要手工维护。
+建议每个副本目录使用不同的目录名，并确保端口不冲突。这样每个项目副本都可以独立维护、独立升级、独立持久化。
 
 ## 注意事项
 
 - `docker compose` 运行时需要 `NET_ADMIN`，否则无法应用 `iptables`
 - 如果宿主机本身拉镜像也要走代理，还需要单独配置 Docker daemon 代理
 - 在当前策略下，本地 DNS 不放行，因此 `SOCKS5_PROXY_HOST` 必须使用 IP 地址
-
-## 后续可扩展
-
-- 安装浏览器并固定代理启动参数
-- 增加 `code-server`
-- 增加 `tailscale` 或 `cloudflared` 作为远程入口
