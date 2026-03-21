@@ -77,6 +77,7 @@ http://<server-ip>:6080/
 - `Chromium` 通过本地 `Privoxy` HTTP 代理转发到上游认证 `SOCKS5`
 - `claude` 通过本地 `Privoxy` 使用 `HTTP_PROXY/HTTPS_PROXY`，不直接使用 `SOCKS`
 - 当 `DISABLE_LOCAL_DNS=1` 时，容器本地 resolver 被显式禁用
+- 容器默认通过 `sysctl` 禁用 `IPv6`，并在 `ip6tables` 上将出站默认拒绝
 
 如果 `ENABLE_IPTABLES=1`，容器还会设置出站白名单：
 
@@ -90,6 +91,8 @@ http://<server-ip>:6080/
 
 - 内网网段可直连
 - 外网访问只能经你的 SOCKS5 代理
+- 外网 `UDP` 默认不会直连，当前仅内网网段可直连 `UDP`
+- `IPv6` 默认禁用，不会通过 IPv6 出站绕过
 - 本地 DNS 不放行，因此 `SOCKS5_PROXY_HOST` 应填写固定 IP
 - 使用 `socks5h` 或 `proxychains4` 的 `proxy_dns` 做外部域名解析
 - 浏览器通过本地 `127.0.0.1:${BROWSER_HTTP_PROXY_PORT}`，避免 Chromium 直接处理 SOCKS5 认证

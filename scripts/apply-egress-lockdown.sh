@@ -19,6 +19,11 @@ iptables -A OUTPUT -p tcp --dport 53 -j REJECT
 iptables -A OUTPUT -o lo -j ACCEPT
 iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
+ip6tables -F OUTPUT
+ip6tables -P OUTPUT DROP
+ip6tables -A OUTPUT -o lo -j ACCEPT
+ip6tables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
 IFS=',' read -r -a CIDR_LIST <<< "${INTERNAL_DIRECT_CIDRS}"
 for cidr in "${CIDR_LIST[@]}"; do
   cidr="${cidr//[[:space:]]/}"
