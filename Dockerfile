@@ -1,11 +1,10 @@
 FROM node:22-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
 ENV DISPLAY=:1
 ENV HOME=/home/dev
 ENV SHELL=/bin/bash
+ENV TZ=America/New_York
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
@@ -31,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     supervisor \
     tmux \
+    tzdata \
     vim-tiny \
     wget \
     xfce4 \
@@ -39,7 +39,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-RUN locale-gen C.UTF-8
+RUN sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen \
+    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 LANGUAGE=en_US:en
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANGUAGE=en_US:en
 
 RUN mkdir -p /var/run/sshd /etc/supervisor/conf.d /opt/bin /workspace \
     && chmod 0755 /workspace

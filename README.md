@@ -29,6 +29,11 @@ cp .env.example .env
 2. 编辑 `.env`，至少修改这些值：
 
 ```env
+TZ=America/New_York
+LANG=en_US.UTF-8
+LC_ALL=en_US.UTF-8
+LANGUAGE=en_US:en
+BROWSER_LANG=en-US
 PASSWORD=your-login-password
 SSH_PASSWORD=your-login-password
 VNC_PASSWORD=your-vnc-password
@@ -45,6 +50,8 @@ BROWSER_HTTP_PROXY_PORT=8118
 SSH_PORT=2222
 WEB_VNC_PORT=6080
 ```
+
+默认模板会把系统 locale、终端语言和浏览器语言设置为美国英语环境，并把系统时区设置为 `America/New_York`。
 
 3. 构建并启动：
 

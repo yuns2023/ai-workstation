@@ -13,6 +13,10 @@ mkdir -p /var/log/ai-workstation
 : "${DISPLAY_WIDTH:=1600}"
 : "${DISPLAY_HEIGHT:=900}"
 : "${DISPLAY_DEPTH:=24}"
+: "${TZ:=America/New_York}"
+: "${LANG:=en_US.UTF-8}"
+: "${LC_ALL:=${LANG}}"
+: "${LANGUAGE:=en_US:en}"
 : "${SOCKS5_PROXY_HOST:=host.docker.internal}"
 : "${SOCKS5_PROXY_PORT:=1080}"
 : "${SOCKS5_PROXY_USERNAME:=}"
@@ -23,6 +27,15 @@ mkdir -p /var/log/ai-workstation
 
 export HOME="/home/${USERNAME}"
 export SHELL=/bin/bash
+export TZ
+export LANG
+export LC_ALL
+export LANGUAGE
+
+if [[ -f "/usr/share/zoneinfo/${TZ}" ]]; then
+  ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
+  echo "${TZ}" >/etc/timezone
+fi
 
 PROXY_AUTH_SUFFIX=""
 if [[ -n "${SOCKS5_PROXY_USERNAME}" && -n "${SOCKS5_PROXY_PASSWORD}" ]]; then

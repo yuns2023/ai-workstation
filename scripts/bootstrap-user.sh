@@ -8,6 +8,10 @@ set -euo pipefail
 : "${PUID:=1000}"
 : "${PGID:=1000}"
 : "${DISPLAY:=:1}"
+: "${TZ:=America/New_York}"
+: "${LANG:=en_US.UTF-8}"
+: "${LC_ALL:=${LANG}}"
+: "${LANGUAGE:=en_US:en}"
 : "${SOCKS5_PROXY_HOST:=host.docker.internal}"
 : "${SOCKS5_PROXY_PORT:=1080}"
 : "${SOCKS5_PROXY_USERNAME:=}"
@@ -53,12 +57,18 @@ su - "${USERNAME}" -c "x11vnc -storepasswd ${VNC_PASSWORD_SHELL} ${VNC_PASSWD_FI
 DISPLAY_SHELL="$(printf '%q' "${DISPLAY}")"
 WORKSPACE_SHELL="$(printf '%q' "/workspace")"
 ALL_PROXY_SHELL="$(printf '%q' "${ALL_PROXY_URL}")"
+TZ_SHELL="$(printf '%q' "${TZ}")"
+LANG_SHELL="$(printf '%q' "${LANG}")"
+LC_ALL_SHELL="$(printf '%q' "${LC_ALL}")"
+LANGUAGE_SHELL="$(printf '%q' "${LANGUAGE}")"
 
 cat >"/home/${USERNAME}/.bashrc" <<EOF
 export EDITOR=vim
 export VISUAL=vim
-export LANG=C.UTF-8
-export LC_ALL=C.UTF-8
+export TZ=${TZ_SHELL}
+export LANG=${LANG_SHELL}
+export LC_ALL=${LC_ALL_SHELL}
+export LANGUAGE=${LANGUAGE_SHELL}
 if [[ -z "\${TERM:-}" || "\${TERM}" == "dumb" ]]; then
   export TERM=xterm-256color
 elif ! infocmp "\${TERM}" >/dev/null 2>&1; then
