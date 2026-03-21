@@ -1,0 +1,19 @@
+services:
+  ai-workstation:
+    build:
+      context: .
+    container_name: ai-workstation
+    hostname: ai-workstation
+    env_file:
+      - .env
+    ports:
+      - "${SSH_PORT:-2222}:22"
+      - "${WEB_VNC_PORT:-6080}:6080"
+    cap_add:
+      - NET_ADMIN
+    shm_size: "1gb"
+    restart: unless-stopped
+    volumes:
+      - ./data/home:/home
+      - ./data/workspace:/workspace
+      - ./logs:/var/log/ai-workstation

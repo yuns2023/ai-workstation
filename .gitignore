@@ -1,0 +1,13 @@
+.env
+data/*
+!data/home/
+!data/workspace/
+data/home/*
+!data/home/.gitkeep
+data/workspace/*
+!data/workspace/.gitkeep
+logs/*
+!logs/.gitkeep
+tmp/
+*.swp
+*.swo
