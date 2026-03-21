@@ -5,6 +5,8 @@ set -euo pipefail
 # Prefer conservative terminal settings and disable fragile UI features by default.
 if [[ -z "${TERM:-}" || "${TERM}" == "dumb" ]]; then
   export TERM=xterm-256color
+elif ! infocmp "${TERM}" >/dev/null 2>&1; then
+  export TERM=xterm-256color
 fi
 
 : "${COLORTERM:=truecolor}"

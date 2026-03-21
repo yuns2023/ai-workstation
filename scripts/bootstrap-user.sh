@@ -61,6 +61,8 @@ export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 if [[ -z "\${TERM:-}" || "\${TERM}" == "dumb" ]]; then
   export TERM=xterm-256color
+elif ! infocmp "\${TERM}" >/dev/null 2>&1; then
+  export TERM=xterm-256color
 fi
 export DISPLAY=${DISPLAY_SHELL}
 export WORKSPACE=${WORKSPACE_SHELL}
