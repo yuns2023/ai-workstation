@@ -165,6 +165,38 @@ docker compose up -d
 
 建议每个副本目录使用不同的目录名，并确保端口和宿主机数据目录不冲突。这样每个实例都可以独立维护、独立持久化，而源码仓库只负责构建和升级镜像。
 
+如果后续会持续创建更多环境，推荐直接用脚手架：
+
+```bash
+cd /path/to/ai-workstation
+./scripts/create-instance.sh alice
+```
+
+它会默认做这几件事：
+
+- 在源码仓库外创建实例目录：`../ai-workstation-instances/alice`
+- 在源码仓库外创建持久化目录：`../ai-workstation-state/alice`
+- 实例目录里只放 `docker-compose.yml` 和 `.env`
+- 自动写入独立的 `HOME_HOST_DIR`、`WORKSPACE_HOST_DIR`、`LOGS_HOST_DIR`
+- 自动分配未占用的 `SSH_PORT` 和 `WEB_VNC_PORT`
+
+脚手架支持自定义目录和端口：
+
+```bash
+./scripts/create-instance.sh alice \
+  --dir /srv/ai-workstations/alice \
+  --state-root /srv/ai-workstation-state/alice \
+  --ssh-port 2225 \
+  --web-port 6083
+```
+
+这套结构更适合长期维护多环境：
+
+- 源码仓库只负责 `build` 和升级镜像
+- 每个实例目录只保留运行配置
+- 每个实例的数据目录完全独立
+- 后续升级镜像后，只需要在各实例目录里执行 `docker compose up -d`
+
 ## 注意事项
 
 - `docker compose` 运行时需要 `NET_ADMIN`，否则无法应用 `iptables`
