@@ -5,7 +5,9 @@
 - `SSH` 远程登录
 - `Codex` 与 `Claude Code` CLI
 - `Xfce` 桌面
-- `VNC` 与 `noVNC`，支持浏览器直接访问桌面
+- `VNC` 与 `noVNC`，既支持原生 VNC 客户端，也支持浏览器直接访问桌面
+- 可选 `RealVNC Server` 后端，兼容 `RealVNC Connect`
+- `Fcitx5` 五笔输入法与中文字体
 - `Chromium` 浏览器，默认走本地 `Privoxy -> SOCKS5`
 - `proxychains4` 和 `iptables` 出站限制
 
@@ -36,6 +38,12 @@ LANG=en_US.UTF-8
 LC_ALL=en_US.UTF-8
 LANGUAGE=en_US:en
 BROWSER_LANG=en-US
+USERNAME=dev
+HOME_DIR=/home/dev
+VNC_SERVER_IMPL=auto
+REALVNC_LICENSE_KEY=
+REALVNC_AUTHENTICATION=VncAuth
+REALVNC_ENCRYPTION=AlwaysOn
 PASSWORD=your-login-password
 SSH_PASSWORD=your-login-password
 VNC_PASSWORD=your-vnc-password
@@ -47,13 +55,30 @@ SOCKS5_PROXY_PORT=1080
 SOCKS5_PROXY_USERNAME=your-proxy-username
 SOCKS5_PROXY_PASSWORD=your-proxy-password
 INTERNAL_DIRECT_CIDRS=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+DIRECT_HOSTS=
+DIRECT_IPS=
+DIRECT_HOST_IP_MAP=
 DISABLE_LOCAL_DNS=1
 BROWSER_HTTP_PROXY_PORT=8118
 SSH_PORT=2222
 WEB_VNC_PORT=6080
+VNC_PORT=15900
 ```
 
 默认模板会把系统 locale、终端语言和浏览器语言设置为美国英语环境，并把系统时区设置为 `America/New_York`。
+
+如果你要启用 `RealVNC Server`，构建前需要把官方 Linux 安装包放到：
+
+```text
+vendor/realvnc/VNC-Server-6.7.4-Linux-x64-ANY.tar.gz
+```
+
+运行时再通过 `.env` 注入 license key：
+
+```env
+VNC_SERVER_IMPL=realvnc
+REALVNC_LICENSE_KEY=XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+```
 
 3. 构建并启动：
 
@@ -75,6 +100,14 @@ http://<server-ip>:6080/
 
 根路径会自动跳转到 noVNC 页面，不需要手工补 `/vnc.html`。
 
+注意：当 `VNC_SERVER_IMPL=realvnc` 时，`noVNC` 会自动停用，只保留原生 VNC 入口。
+
+原生 VNC 客户端也可以直接连接：
+
+```text
+<server-ip>:15900
+```
+
 这套模式适合在源码目录里开发和重建镜像。执行后会在本机生成 `ai-workstation:local` 镜像，后面的极简实例目录会直接复用它。
 
 ## 代理策略
@@ -82,7 +115,13 @@ http://<server-ip>:6080/
 容器默认会做两层代理控制：
 
 - shell 环境里注入 `ALL_PROXY=socks5h://...`
-- `codex`、`claude`、`git`、`curl`、`wget` 默认通过 `proxychains4`
+- `codex`、`claude` 默认走代理 wrapper
+- shell 默认导出 `NO_PROXY=127.0.0.1,localhost,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`
+- `DIRECT_HOSTS` 里的域名会加入 `NO_PROXY`，浏览器和 `codex` 会对这些目标直连
+- `DIRECT_IPS` 里的固定 IP/CIDR 会加入 `NO_PROXY`，并被 `iptables` 放行直连
+- `DIRECT_HOST_IP_MAP` 用于在关闭本地 DNS 时，把直连域名静态写入容器 `/etc/hosts`
+- 访问内网地址时，`curl`、`wget`、`git` 默认直连
+- 如果你要强制让它们走 `proxychains4`，使用 `pcurl`、`pwget`、`pgit`
 - `Chromium` 通过本地 `Privoxy` HTTP 代理转发到上游认证 `SOCKS5`
 - `claude` 通过本地 `Privoxy` 使用 `HTTP_PROXY/HTTPS_PROXY`，不直接使用 `SOCKS`
 - 当 `DISABLE_LOCAL_DNS=1` 时，容器本地 resolver 被显式禁用
@@ -91,6 +130,7 @@ http://<server-ip>:6080/
 如果 `ENABLE_IPTABLES=1`，容器还会设置出站白名单：
 
 - 允许访问 `INTERNAL_DIRECT_CIDRS` 里的内网网段
+- 允许访问 `DIRECT_IPS` 里的额外直连目标
 - 允许访问 `SOCKS5_PROXY_HOST:SOCKS5_PROXY_PORT`
 - 允许访问容器本地回环
 - 允许已建立连接
@@ -106,11 +146,19 @@ http://<server-ip>:6080/
 - 使用 `socks5h` 或 `proxychains4` 的 `proxy_dns` 做外部域名解析
 - 浏览器通过本地 `127.0.0.1:${BROWSER_HTTP_PROXY_PORT}`，避免 Chromium 直接处理 SOCKS5 认证
 
+交互式 shell 里常用的代理行为如下：
+
+- `curl http://192.168.1.4:9001/login` 会直连内网
+- `pcurl https://example.com` 会强制走 `proxychains4`
+- `pgit clone ...` 和 `pwget ...` 同理
+
 ## 认证与登录
 
 - 默认用户来自 `.env` 的 `USERNAME`
+- 容器内 home 路径来自 `.env` 的 `HOME_DIR`，默认是 `/home/<USERNAME>`
 - SSH 使用密码登录
-- VNC 使用 `.env` 的 `VNC_PASSWORD`
+- 原生 VNC 使用 `.env` 的 `VNC_PASSWORD`
+- `RealVNC Server` 模式还需要 `.env` 的 `REALVNC_LICENSE_KEY`
 - 容器里的工作目录是 `/workspace`
 - 桌面有 `Chromium (Proxy)` 启动器，shell 里可执行 `browser`
 
@@ -153,10 +201,12 @@ docker compose up -d
 需要修改的通常只有：
 
 - `IMAGE_NAME`
+- `USERNAME`、`HOME_DIR`
 - `PASSWORD`、`SSH_PASSWORD`、`VNC_PASSWORD`
 - `SOCKS5_PROXY_HOST`、`SOCKS5_PROXY_PORT`、`SOCKS5_PROXY_USERNAME`、`SOCKS5_PROXY_PASSWORD`
+- `DIRECT_HOSTS`、`DIRECT_IPS`、`DIRECT_HOST_IP_MAP`
 - `HOME_HOST_DIR`、`WORKSPACE_HOST_DIR`、`LOGS_HOST_DIR`
-- `SSH_PORT`、`WEB_VNC_PORT`
+- `SSH_PORT`、`VNC_PORT`、`WEB_VNC_PORT`
 
 这个模式下，新目录里只需要：
 
@@ -177,8 +227,9 @@ cd /path/to/ai-workstation
 - 在源码仓库外创建实例目录：`../ai-workstation-instances/alice`
 - 在源码仓库外创建持久化目录：`../ai-workstation-state/alice`
 - 实例目录里只放 `docker-compose.yml` 和 `.env`
+- 自动写入唯一的容器内 `HOME_DIR`
 - 自动写入独立的 `HOME_HOST_DIR`、`WORKSPACE_HOST_DIR`、`LOGS_HOST_DIR`
-- 自动分配未占用的 `SSH_PORT` 和 `WEB_VNC_PORT`
+- 自动分配未占用的 `SSH_PORT`、`VNC_PORT` 和 `WEB_VNC_PORT`
 
 脚手架支持自定义目录和端口：
 

@@ -4,6 +4,7 @@ set -euo pipefail
 : "${SOCKS5_PROXY_HOST:=host.docker.internal}"
 : "${SOCKS5_PROXY_PORT:=1080}"
 : "${INTERNAL_DIRECT_CIDRS:=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}"
+: "${DIRECT_IPS:=}"
 
 if [[ "${SOCKS5_PROXY_HOST}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
   PROXY_IP="${SOCKS5_PROXY_HOST}"
@@ -29,6 +30,13 @@ for cidr in "${CIDR_LIST[@]}"; do
   cidr="${cidr//[[:space:]]/}"
   [[ -z "${cidr}" ]] && continue
   iptables -A OUTPUT -d "${cidr}" -j ACCEPT
+done
+
+IFS=',' read -r -a DIRECT_IP_LIST <<< "${DIRECT_IPS}"
+for ip in "${DIRECT_IP_LIST[@]}"; do
+  ip="${ip//[[:space:]]/}"
+  [[ -z "${ip}" ]] && continue
+  iptables -A OUTPUT -d "${ip}" -j ACCEPT
 done
 
 iptables -A OUTPUT -d "${PROXY_IP}" -p tcp --dport "${SOCKS5_PROXY_PORT}" -j ACCEPT

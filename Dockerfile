@@ -13,9 +13,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     dbus-x11 \
     dnsutils \
+    fcitx5 \
+    fcitx5-chinese-addons \
+    fcitx5-config-qt \
+    fcitx5-frontend-gtk3 \
+    fcitx5-frontend-qt5 \
+    fcitx5-table \
+    fonts-noto-cjk \
+    fonts-wqy-zenhei \
     git \
     iproute2 \
     iptables \
+    libgtk2.0-0 \
     locales \
     netcat-openbsd \
     ncurses-term \
@@ -53,6 +62,14 @@ RUN mkdir -p /var/run/sshd /etc/supervisor/conf.d /opt/bin /workspace \
 COPY config/charles-proxy-ssl-proxying-certificate.crt /usr/local/share/ca-certificates/charles-proxy-ssl-proxying-certificate.crt
 
 RUN update-ca-certificates
+
+COPY vendor/realvnc/VNC-Server-6.7.4-Linux-x64-ANY.tar.gz /tmp/VNC-Server-6.7.4-Linux-x64-ANY.tar.gz
+
+RUN cd /tmp \
+    && tar -xf VNC-Server-6.7.4-Linux-x64-ANY.tar.gz \
+    && cd VNC-Server-6.7.4-Linux-x64 \
+    && ./vncinstall \
+    && rm -rf /tmp/VNC-Server-6.7.4-Linux-x64 /tmp/VNC-Server-6.7.4-Linux-x64-ANY.tar.gz
 
 RUN npm install -g @openai/codex \
     && BUILD_HOME="$(mktemp -d)" \

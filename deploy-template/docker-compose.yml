@@ -6,6 +6,7 @@ services:
       - .env
     ports:
       - "${SSH_PORT:-2222}:22"
+      - "${VNC_PORT:-15900}:5900"
       - "${WEB_VNC_PORT:-6080}:6080"
     cap_add:
       - NET_ADMIN

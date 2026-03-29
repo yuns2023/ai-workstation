@@ -16,7 +16,7 @@ mkdir -p /etc/privoxy
 
 cat >/etc/privoxy/ai-workstation.conf <<EOF
 confdir /etc/privoxy
-templdir /usr/share/privoxy/templates
+templdir /etc/privoxy/templates
 logdir /var/log/ai-workstation
 actionsfile match-all.action
 actionsfile default.action

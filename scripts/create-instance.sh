@@ -10,6 +10,7 @@ Options:
   --dir <path>         Instance directory. Default: ../ai-workstation-instances/<name>
   --state-root <path>  Persistent data root. Default: ../ai-workstation-state/<name>
   --ssh-port <port>    SSH port. Default: next free port from 2222
+  --vnc-port <port>    Native VNC port. Default: next free port from 15900
   --web-port <port>    Web VNC port. Default: next free port from 6080
   -h, --help           Show this help
 
@@ -106,6 +107,7 @@ STATE_ROOT_BASE="${AI_WORKSTATION_STATE_ROOT:-${DEFAULT_PARENT}/ai-workstation-s
 INSTANCE_DIR="${INSTANCES_ROOT}/${NAME}"
 STATE_ROOT="${STATE_ROOT_BASE}/${NAME}"
 SSH_PORT=""
+VNC_PORT=""
 WEB_VNC_PORT=""
 
 while [[ $# -gt 0 ]]; do
@@ -123,6 +125,11 @@ while [[ $# -gt 0 ]]; do
     --ssh-port)
       require_arg "$1" "${2:-}"
       SSH_PORT="$2"
+      shift 2
+      ;;
+    --vnc-port)
+      require_arg "$1" "${2:-}"
+      VNC_PORT="$2"
       shift 2
       ;;
     --web-port)
@@ -161,22 +168,30 @@ if [[ -z "${SSH_PORT}" ]]; then
   SSH_PORT="$(next_free_port SSH_PORT 2222)"
 fi
 
+if [[ -z "${VNC_PORT}" ]]; then
+  VNC_PORT="$(next_free_port VNC_PORT 15900)"
+fi
+
 if [[ -z "${WEB_VNC_PORT}" ]]; then
   WEB_VNC_PORT="$(next_free_port WEB_VNC_PORT 6080)"
 fi
 
 set_env_value "${INSTANCE_DIR}/.env" COMPOSE_PROJECT_NAME "ai-${NAME}"
+set_env_value "${INSTANCE_DIR}/.env" HOME_DIR "/home/ws-${NAME}"
 set_env_value "${INSTANCE_DIR}/.env" HOME_HOST_DIR "${STATE_ROOT}/home"
 set_env_value "${INSTANCE_DIR}/.env" WORKSPACE_HOST_DIR "${STATE_ROOT}/workspace"
 set_env_value "${INSTANCE_DIR}/.env" LOGS_HOST_DIR "${STATE_ROOT}/logs"
 set_env_value "${INSTANCE_DIR}/.env" SSH_PORT "${SSH_PORT}"
+set_env_value "${INSTANCE_DIR}/.env" VNC_PORT "${VNC_PORT}"
 set_env_value "${INSTANCE_DIR}/.env" WEB_VNC_PORT "${WEB_VNC_PORT}"
 
 cat <<EOF
 Created instance: ${NAME}
 Instance dir: ${INSTANCE_DIR}
 State root: ${STATE_ROOT}
+Container home: /home/ws-${NAME}
 SSH port: ${SSH_PORT}
+Native VNC port: ${VNC_PORT}
 Web VNC port: ${WEB_VNC_PORT}
 
 Next steps:
